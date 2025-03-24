@@ -7,8 +7,8 @@
 
         public:
 
-            DHT_Sensor(uint8_t gpio);
-            void begin();
+            DHT_Sensor();
+            void config(uint8_t gpio);
             float readTemperatureC();
             float readTemperatureF();
             float readHumidity();
@@ -21,7 +21,7 @@
             uint32_t _last_read_time, _max_cycles;
             bool _last_result;
             bool _read(bool force = false);
-            uint32_t _expect_pulse(bool level);
+            uint32_t _expectPulse(bool level);
 
     };
 
