@@ -12,6 +12,7 @@
             float readTemperatureC();
             float readTemperatureF();
             float readHumidity();
+            void temp_func();
 
         private:
 
