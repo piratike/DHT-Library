@@ -17,7 +17,7 @@
 
             uint8_t data[5];
             uint8_t _pull_time;
-            uint8_t _port, _bit;
+            uint8_t _gpio, _port, _bit;
             uint32_t _last_read_time, _max_cycles;
             bool _last_result;
             bool _read(bool force = false);

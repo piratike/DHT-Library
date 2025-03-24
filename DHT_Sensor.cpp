@@ -15,6 +15,7 @@ DHT_Sensor::DHT_Sensor()
 DHT_Sensor::config(uint8_t gpio)
 {
 
+    _gpio = gpio;
     _port = digitalPinToPort(gpio);
     _bit = digitalPinToBitMask(gpio);
 
@@ -26,7 +27,46 @@ DHT_Sensor::readTemperatureC(){}
 
 DHT_Sensor::readTemperatureF(){}
 
-DHT_Sensor::_read(bool force){}
+DHT_Sensor::_read(bool force)
+{
+
+    uint32_t current_time = millis();
+
+    if (force || (current_time - _last_read_time) >= MIN_INTERVAL_BETWEEN_READINGS)
+        return _last_result;
+
+    _last_read_time = current_time;
+    memset(data, 0, sizeof(data));
+
+    pinMode(_gpio, OUTPUT);
+    digitalWrite(_gpio, LOW);
+    delay(20);
+    pinMode(_gpio, INPUT_PULLUP);
+    delayMicroseconds(80);
+
+    noInterrups();
+
+    if(_expectPulse(LOW) == TIMEOUT || _expectPulse(HIGH) == TIMEOUT) return (_last_result = false);
+
+    uint32_t cycles[80];
+    for(uint8_t = 0 ; i < 80 ; i += 2)
+    {
+        cycles[i] = _expectPulse(LOW);
+        cycles[i + 1] = _expectPulse(HIGH);
+    }
+
+    for(uint8_t i = 0 ; i < 40 ; ++i)
+    {
+        uint32_t low_cycles = cycles[2 * i], high_cycles = cycles[2 * i + 1];
+        if(low_cycles == TIMEOUT || high_cycles == TIMEOUT) return (_last_result = false);
+        data[i / 8] <<= 1;
+        if(high_cycles > low_cycles) data[i / 8] |= 1;
+    }
+
+    if(data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) return (_last_result = true);
+    else return (_last_result = false);
+
+}
 
 DHT_Sensor::_expectPulse(bool level)
 {
