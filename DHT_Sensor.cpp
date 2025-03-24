@@ -4,12 +4,20 @@
 #define MIN_INTERVAL_BETWEEN_READINGS 2000
 #define TIMEOUT UINT32_MAX
 
+enum DHT_Status {
+    DHT_OK,
+    DHT_TIMEOUT,
+    DHT_CHECKSUM_FAIL,
+    DHT_NO_RESPONSE,
+    DHT_UNKNOWN_ERROR
+};
+
 DHT_Sensor::DHT_Sensor()
 {
 
     _max_cycles = microsecondsToClockCycles(1000);
     _last_read_time = millis() - MIN_INTERVAL_BETWEEN_READINGS;
-    _pull_time = 55; // Default value from other DHT libraries
+    _pull_time = 55;
 
 }
 
@@ -43,26 +51,35 @@ float DHT_Sensor::readTemperatureC(){}
 
 float DHT_Sensor::readTemperatureF(){}
 
+void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
+{
+
+    uint32_t start_time = micros();
+    while((micros() - start_time) < time_to_wait) {}
+
+}
+
 bool DHT_Sensor::_read(bool force)
 {
 
     uint32_t current_time = millis();
 
     if(!force && (current_time - _last_read_time) < MIN_INTERVAL_BETWEEN_READINGS)
-        return _last_result;
+        return DHT_OK;
 
     _last_read_time = current_time;
     memset(data, 0, sizeof(data));
 
     pinMode(_gpio, OUTPUT);
     digitalWrite(_gpio, LOW);
-    delay(20);
+    _delayMicrosecondsNonBlocking(20000);
     pinMode(_gpio, INPUT_PULLUP);
-    delayMicroseconds(80);
+    _delayMicrosecondsNonBlocking(80);
 
     noInterrupts();
 
-    if(_expectPulse(LOW) == TIMEOUT || _expectPulse(HIGH) == TIMEOUT) return (_last_result = false);
+    if (_expectPulse(LOW) == TIMEOUT) return DHT_NO_RESPONSE;
+    if (_expectPulse(HIGH) == TIMEOUT) return DHT_TIMEOUT;
 
     uint32_t cycles[80];
     for(uint8_t i = 0 ; i < 80 ; i += 2)
@@ -74,15 +91,15 @@ bool DHT_Sensor::_read(bool force)
     for(uint8_t i = 0 ; i < 40 ; ++i)
     {
         uint32_t low_cycles = cycles[2 * i], high_cycles = cycles[2 * i + 1];
-        if(low_cycles == TIMEOUT || high_cycles == TIMEOUT) return (_last_result = false);
+        if(low_cycles == TIMEOUT || high_cycles == TIMEOUT) return DHT_TIMEOUT;
         data[i / 8] <<= 1;
         if(high_cycles > low_cycles) data[i / 8] |= 1;
     }
 
     interrupts();
 
-    if(data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) return (_last_result = true);
-    else return (_last_result = false);
+    if(data[4] != ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) return DHT_CHECKSUM_FAIL;
+    else return DHT_OK;
 
 }
 

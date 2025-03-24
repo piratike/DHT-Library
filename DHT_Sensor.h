@@ -21,6 +21,7 @@
             uint8_t _gpio, _port, _bit;
             uint32_t _last_read_time, _max_cycles;
             bool _last_result;
+            void _delayMicrosecondsNonBlocking(uint32_t time_to_wait);
             bool _read(bool force = false);
             uint32_t _expectPulse(bool level);
 
