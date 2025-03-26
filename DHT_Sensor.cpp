@@ -12,6 +12,11 @@ enum DHT_Status {
     DHT_UNKNOWN_ERROR
 };
 
+enum DHT_TYPES {
+    DHT_11,
+    DHT_22
+}
+
 DHT_Sensor::DHT_Sensor()
 {
 
@@ -27,6 +32,7 @@ void DHT_Sensor::config(uint8_t gpio)
     _gpio = gpio;
     _port = digitalPinToPort(gpio);
     _bit = digitalPinToBitMask(gpio);
+    _identifySensorType();
 
 }
 
@@ -59,7 +65,7 @@ void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
 
 }
 
-bool DHT_Sensor::_read(bool force)
+uint8_t DHT_Sensor::_read(bool force)
 {
 
     uint32_t current_time = millis();
@@ -100,6 +106,42 @@ bool DHT_Sensor::_read(bool force)
 
     if(data[4] != ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) return DHT_CHECKSUM_FAIL;
     else return DHT_OK;
+
+}
+
+uint8_t DHT_Sensor::_identifySensorType()
+{
+
+    pinMode(_gpio, OUTPUT);
+    digitalWrite(_gpio, LOW);
+    delay(2);
+    pinMode(_gpio, INPUT_PULLUP);
+    delayMicroseconds(40);
+
+    noInterrupts();
+
+    uint32_t responseLow = _expectPulse(LOW);
+    uint32_t responseHigh = _expectPulse(HIGH);
+
+    interrupts();
+
+    if (responseLow == TIMEOUT || responseHigh == TIMEOUT) {
+        pinMode(_gpio, OUTPUT);
+        digitalWrite(_gpio, LOW);
+        delay(18);
+        pinMode(_gpio, INPUT_PULLUP);
+        delayMicroseconds(40);
+
+        noInterrupts();
+        responseLow = _expectPulse(LOW);
+        responseHigh = _expectPulse(HIGH);
+        interrupts();
+
+        if (responseLow == TIMEOUT || responseHigh == TIMEOUT) return false;
+        return DHT_11;
+    }
+    
+    return DHT_22;
 
 }
 
