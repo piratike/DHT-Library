@@ -65,14 +65,6 @@ void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
 
 }
 
-void DHT_Sensor::_delayMillisecondsNonBlocking(uint32_t time_to_wait)
-{
-
-    time_to_wait *= 1000;
-    _delayMicrosecondsNonBlocking(time_to_wait);
-
-}
-
 void DHT_Sensor::_start_transmission()
 {
 
