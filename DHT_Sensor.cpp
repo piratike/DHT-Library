@@ -65,6 +65,14 @@ void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
 
 }
 
+void _delayMillisecondsNonBlocking(uint32_t time_to_wait)
+{
+
+    _delayMicrosecondsNonBlocking(time_to_wait * 1000);
+
+}
+
+
 uint8_t DHT_Sensor::_read(bool force)
 {
 
