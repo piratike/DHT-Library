@@ -13,6 +13,7 @@ enum DHT_Status {
 };
 
 enum DHT_TYPES {
+    NO_TYPE,
     DHT_11,
     DHT_22
 };
@@ -65,12 +66,12 @@ void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
 
 }
 
-void DHT_Sensor::_start_transmission()
+void DHT_Sensor::_start_transmission(uint16_t low_time)
 {
 
     pinMode(_gpio, OUTPUT);
     digitalWrite(_gpio, LOW);
-    _delayMicrosecondsNonBlocking(_start_transmission_low_time);
+    _delayMicrosecondsNonBlocking(low_time ? low_time : _start_transmission_low_time);
     pinMode(_gpio, INPUT_PULLUP);
     _delayMicrosecondsNonBlocking(80);
 
@@ -137,43 +138,24 @@ uint8_t DHT_Sensor::_read(bool force)
 uint8_t DHT_Sensor::_identifySensorType()
 {
 
-    pinMode(_gpio, OUTPUT);
-    
-    // 1️⃣ Intentar con tiempo bajo de 2ms (DHT22)
-    digitalWrite(_gpio, LOW);
-    delayMicroseconds(2000);
-    pinMode(_gpio, INPUT_PULLUP);
-    delayMicroseconds(40);
+    const uint16_t test_durations[] = { 2000, 18000 };
+    const uint8_t sensor_types[] = { DHT_22, DHT_11 };
 
-    noInterrupts();
-    uint32_t responseLow = _expectPulse(LOW);
-    uint32_t responseHigh = _expectPulse(HIGH);
-    interrupts();
+    for(uint8_t i = 0 ; i < 2 ; i++)
+    {
 
-    if (responseLow != TIMEOUT && responseHigh != TIMEOUT) {
-        Serial.println("Sensor identificado como DHT22");
-        return DHT_22;
+        _start_transmission(test_durations[i]);
+        noInterrupts();
+        uint32_t respone_low = _expectPulse(LOW);
+        uint32_t respone_high = _expectPulse(HIGH);
+        interrupts();
+
+        if(respone_low != TIMEOUT && respone_high != TIMEOUT)
+            return sensor_types[i];
+
     }
 
-    // 2️⃣ Intentar con tiempo bajo de 18ms (DHT11)
-    pinMode(_gpio, OUTPUT);
-    digitalWrite(_gpio, LOW);
-    delay(18);  // 18ms = requerido para DHT11
-    pinMode(_gpio, INPUT_PULLUP);
-    delayMicroseconds(40);
-
-    noInterrupts();
-    responseLow = _expectPulse(LOW);
-    responseHigh = _expectPulse(HIGH);
-    interrupts();
-
-    if (responseLow != TIMEOUT && responseHigh != TIMEOUT) {
-        Serial.println("Sensor identificado como DHT11");
-        return DHT_11;
-    }
-
-    Serial.println("Error: No se detectó ningún sensor.");
-    return 255;  // No detectado
+    return NO_TYPE;
 
 }
 
