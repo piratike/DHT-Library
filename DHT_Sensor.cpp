@@ -41,14 +41,42 @@ float DHT_Sensor::readHumidity()
 {
 
   if(_read(false) != DHT_OK) return NAN;
-
-  return (_type == DHT_11) ? _data[0] : ((_data[0] << 8) | _data[1]) * 0.1;
+  if(_type == DHT_11) return _data[0];
+  else return ((_data[0] << 8) | _data[1]) * 0.1;
 
 }
 
-float DHT_Sensor::readTemperatureC(){}
+float DHT_Sensor::readTemperatureC()
+{
 
-float DHT_Sensor::readTemperatureF(){}
+  if(_read(false) != DHT_OK) return NAN;
+  if(_type == DHT_11) return _data[2];
+  else
+  {
+
+    int16_t temperature = ((_data[2] & 0x7F) << 8) | _data[3];
+    if(_data[2] & 0x80) temperature *= -1;
+    return temperature * 0.1;
+
+  }
+
+}
+
+float DHT_Sensor::readTemperatureF()
+{
+
+  float temperature_in_c = readTemperatureC();
+  return isnan(temperature_in_c) ? NAN : temperature_in_c * 1.8 + 32;
+
+}
+
+float DHT_Sensor::readTemperatureK()
+{
+
+  float temperature_in_c = readTemperatureC();
+  return isnan(temperature_in_c) ? NAN : temperature_in_c + 273.15;
+
+}
 
 void DHT_Sensor::_delayMicrosecondsNonBlocking(uint32_t time_to_wait)
 {
