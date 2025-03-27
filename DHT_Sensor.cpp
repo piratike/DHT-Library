@@ -37,22 +37,14 @@ void DHT_Sensor::config(uint8_t gpio)
 
 }
 
-void DHT_Sensor::temp_func()
+float DHT_Sensor::readHumidity()
 {
-    _read(false);
-    Serial.print("_data stored: ");
-    Serial.print(_data[0]);
-    Serial.print(", ");
-    Serial.print(_data[1]);
-    Serial.print(", ");
-    Serial.print(_data[2]);
-    Serial.print(", ");
-    Serial.print(_data[3]);
-    Serial.print(", ");
-    Serial.println(_data[4]);
-}
 
-float DHT_Sensor::readHumidity(){}
+  if(_read(false) != DHT_OK) return NAN;
+
+  return (_type == DHT_11) ? _data[0] : ((_data[0] << 8) | _data[1]) * 0.1;
+
+}
 
 float DHT_Sensor::readTemperatureC(){}
 
@@ -96,7 +88,7 @@ uint8_t DHT_Sensor::_read(bool force)
     }
 
     uint32_t cycles[80];
-    for (uint8_t i = 0; i < 80; i += 2)
+    for (uint8_t i = 0; i < 80; i++)
         cycles[i] = _expectPulse(i % 2 == 0 ? LOW : HIGH);
 
     interrupts();
