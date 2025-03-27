@@ -1,0 +1,14 @@
+#######################################
+# Syntax Coloring for DHT_Sensor Library
+#######################################
+
+# Class Name (Highlighted as a Keyword)
+DHT_Sensor  KEYWORD1
+
+# Public Methods (Highlighted as Functions)
+config KEYWORD2
+readTemperatureC KEYWORD2
+readTemperatureF KEYWORD2
+readTemperatureK KEYWORD2
+readHumidity KEYWORD2
+temp_func KEYWORD2
