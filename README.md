@@ -14,53 +14,62 @@ A simple and easy-to-use library to read temperature and humidity from DHT11 and
 2. Include the library in your sketch:
    ```cpp
    #include <DHT_Sensor.h>
+   ```
 
 ## Usage
 
 ### Initialize the Sensor
-    ```cpp
-    DHT_Sensor dht;
-    dht.config(2);  // GPIO pin connected to the DHT sensor
+   ```cpp
+   DHT_Sensor dht;
+   dht.config(2);  // GPIO pin connected to the DHT sensor
+   ```
 
 ### Read Humidity
-    ```cpp
+   ```cpp
     float humidity = dht.readHumidity();
+   ```
 
 ### Read Temperature
-    ```cpp
-    // In Celsius
-    float temperature = dht.readTemperatureC();
+   ```cpp
+   // In Celsius
+   float temperature = dht.readTemperatureC();
 
-    // In Fahrenheit
-    float temperature = dht.readTemperatureF();
+   // In Fahrenheit
+   float temperature = dht.readTemperatureF();
 
-    // In Kelvin
-    float temperature = dht.readTemperatureK();
+   // In Kelvin
+   float temperature = dht.readTemperatureK();
+   ```
 
 ## Example
-    ```cpp
-    #include <DHT_Sensor.h>
+   ```cpp
+   #include <DHT_Sensor.h>
 
-    DHT_Sensor dht;
+   DHT_Sensor dht;
 
-    void setup() {
-    Serial.begin(9600);
-    dht.config(2);  // GPIO pin connected to the DHT sensor
-    }
+   void setup() {
 
-    void loop() {
-    float humidity = dht.readHumidity();
-    float temperatureC = dht.readTemperatureC();
+      Serial.begin(9600);
+      dht.config(2);  // GPIO pin connected to the DHT sensor
 
-    if (isnan(humidity) || isnan(temperatureC)) {
-        Serial.println("Error reading sensor data.");
-    } else {
-        Serial.print("Humidity: ");
-        Serial.print(humidity);
-        Serial.print(" %, Temperature: ");
-        Serial.print(temperatureC);
-        Serial.println(" °C");
-    }
+   }
 
-    delay(2000);  // Wait for 2 seconds
-    }
+   void loop() {
+
+      float humidity = dht.readHumidity();
+      float temperatureC = dht.readTemperatureC();
+   
+      if (isnan(humidity) || isnan(temperatureC)) {
+          Serial.println("Error reading sensor data.");
+      } else {
+          Serial.print("Humidity: ");
+          Serial.print(humidity);
+          Serial.print(" %, Temperature: ");
+          Serial.print(temperatureC);
+          Serial.println(" °C");
+      }
+   
+      delay(2000);  // Wait for 2 seconds
+
+   }
+   ```
